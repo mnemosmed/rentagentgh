@@ -1,73 +1,62 @@
-# Welcome to your Lovable project
+# RentAgentGhana
 
-## Project info
+Finding an apartment in Accra is harder than it should be. Renters chase agents across TikTok, WhatsApp, and word of mouth — repeating the same budget, room count, and move-in date to people who may not even cover their area. There is no simple way to discover which agents actually work in East Legon, Madina, Cantonments, or Osu, or to keep those conversations in one place.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+**RentAgentGhana** solves that. Renters search by neighborhood, browse agents who serve that area (sorted by ratings), and send a structured rental request in seconds. Agents get notified by SMS and can reply on the platform — whether they have claimed their profile or not.
 
-## How can I edit this code?
+## What it does
 
-There are several ways of editing your application.
+- **Search by area** — find agents by the neighborhoods they cover, not random listings
+- **Structured requests** — budget, bedrooms, move-in date, and notes sent in one message
+- **In-platform chat** — keep renter–agent conversations in one thread
+- **Agent profiles & ratings** — compare agents before you reach out
+- **SMS notifications** — agents are alerted when someone contacts them
+- **Profile claiming** — agents verify ownership of their listing via phone OTP
 
-**Use Lovable**
+## Who it is for
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+- **Renters** in Accra looking for a faster, clearer way to reach rental agents
+- **Rental agents** who want inquiries from people searching in areas they actually serve
 
-Changes made via Lovable will be committed automatically to this repo.
+## For developers
 
-**Use your preferred IDE**
+The app is a Django 5 project with PostgreSQL and Arkesel SMS, in the `python/` directory.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+```powershell
+cd python
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+docker compose up -d
+copy .env.example .env
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+python manage.py migrate
+python manage.py seed_agents
+python manage.py runserver
 ```
 
-**Edit a file directly in GitHub**
+Open http://127.0.0.1:8000/
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Environment
 
-**Use GitHub Codespaces**
+Copy `python/.env.example` to `python/.env` and configure:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+| Variable | Purpose |
+|----------|---------|
+| `DATABASE_URL` | PostgreSQL connection (default: `localhost:5433`) |
+| `ARKESEL_API_KEY` | SMS for OTP and agent notifications |
+| `SMS_ENABLED` | Set `False` to log SMS to the console in development |
+| `SITE_URL` | Public URL used in SMS links |
 
-## What technologies are used for this project?
+### Project structure
 
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```
+python/
+├── accounts/     # Auth, phone OTP
+├── agents/       # Search, profiles, claim flow
+├── messaging/    # Chat and notifications
+├── feedback/     # Renter feedback forms
+├── config/       # Django settings
+└── templates/
+```
