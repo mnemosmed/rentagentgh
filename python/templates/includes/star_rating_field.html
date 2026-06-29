@@ -1,0 +1,22 @@
+<div class="star-rating-field{% if field.errors %} star-rating-field--error{% endif %}">
+  <span class="star-rating-label" id="{{ field.auto_id }}_label">{{ label|default:field.label }}</span>
+  <div class="star-rating" role="radiogroup" aria-labelledby="{{ field.auto_id }}_label">
+    {% for i in "54321" %}
+    <input
+      type="radio"
+      class="star-rating-input"
+      name="{{ field.html_name }}"
+      id="{{ field.auto_id }}_{{ i }}"
+      value="{{ i }}"
+      {% if field.value|stringformat:"s" == i %}checked{% endif %}
+      required
+    >
+    <label for="{{ field.auto_id }}_{{ i }}" class="star-rating-star" title="{{ i }} out of 5">
+      <span aria-hidden="true">★</span>
+    </label>
+    {% endfor %}
+  </div>
+  {% if field.errors %}
+  <p class="form-error">{{ field.errors.0 }}</p>
+  {% endif %}
+</div>

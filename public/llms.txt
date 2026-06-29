@@ -1,0 +1,22 @@
+# RentAgentGhana
+
+> The #1 directory for finding responsive rental agents in Accra, Ghana. Search by neighborhood and connect directly with verified agents — no listings, no spam.
+
+RentAgentGhana helps renters in Accra find trusted rental agents by the areas they actually work in (East Legon, Cantonments, Airport Residential, Osu, Labone, Dzorwulu, Tema, Spintex, and more). Renters search by neighborhood, browse agent profiles, and message agents directly. Agents claim their profile via SMS verification and respond to enquiries from their dashboard.
+
+## Pages
+
+- [Home](/): Overview of the platform, featured neighborhoods, and how it works.
+- [Search agents](/search): Find rental agents by Accra neighborhood.
+- [For agents](/agent-auth): Sign up or claim an existing agent profile.
+
+## Neighborhood searches
+
+- [East Legon agents](/search?area=East%20Legon): Rental agents serving East Legon.
+- [Cantonments agents](/search?area=Cantonments): Rental agents serving Cantonments.
+- [Airport Residential agents](/search?area=Airport%20Residential): Rental agents serving Airport Residential.
+- [Osu agents](/search?area=Osu): Rental agents serving Osu.
+- [Labone agents](/search?area=Labone): Rental agents serving Labone.
+- [Dzorwulu agents](/search?area=Dzorwulu): Rental agents serving Dzorwulu.
+- [Tema agents](/search?area=Tema): Rental agents serving Tema.
+- [Spintex agents](/search?area=Spintex): Rental agents serving Spintex.

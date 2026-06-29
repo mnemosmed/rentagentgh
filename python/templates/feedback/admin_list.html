@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Moderate feedback — {{ SITE_NAME }}{% endblock %}
+{% block content %}
+<div class="container" style="padding:2rem 1rem;">
+  <h1>Feedback moderation</h1>
+  {% for item in items %}
+  <div class="card" style="margin-top:1rem;">
+    <div class="stars">★ {{ item.rating }}</div>
+    <p>{{ item.going_well }}</p>
+    <p class="text-muted">{{ item.display_name }} · {{ item.submitted_at }}</p>
+    <form method="post" style="display:flex;gap:.5rem;margin-top:.75rem;">
+      {% csrf_token %}
+      <input type="hidden" name="id" value="{{ item.id }}">
+      <button name="action" value="approve" class="btn btn-primary btn-sm">Publish</button>
+      <button name="action" value="reject" class="btn btn-outline btn-sm">Hide</button>
+    </form>
+  </div>
+  {% empty %}
+  <p class="text-muted">No submitted feedback yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}

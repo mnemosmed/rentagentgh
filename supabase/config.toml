@@ -1,0 +1,28 @@
+project_id = "akjenvsitwnrnqcyqvou"
+
+[functions.claim-profile]
+verify_jwt = false
+
+[functions.send-sms-notification]
+verify_jwt = false
+
+[functions.agent-reply]
+verify_jwt = false
+
+[functions.phone-auth]
+verify_jwt = false
+
+[functions.agent-notification-cron]
+verify_jwt = false
+
+[functions.notify-agent-rating]
+verify_jwt = false
+
+[functions.send-feedback]
+verify_jwt = false
+
+[functions.renter-notification-cron]
+verify_jwt = false
+
+[functions.share-contact]
+verify_jwt = false

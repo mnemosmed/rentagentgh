@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load chat_extras %}
+{% block title %}Agent Dashboard — {{ agent.display_name }}{% endblock %}
+
+{% block content %}
+<div class="messages-page wa-chat agent-dashboard-page">
+  <div class="chat-shell">
+    <aside class="chat-sidebar {% if selected %}hidden-mobile{% endif %}">
+      <div class="chat-sidebar-head">
+        <h1 class="chat-sidebar-title">Chats</h1>
+        <a href="{% url 'agents:profile' agent.id %}" class="chat-sidebar-action" title="Edit profile">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </a>
+      </div>
+      <div class="chat-thread-list" id="chat-thread-list">
+        {% include "messaging/partials/thread_list.html" with conversations=conversations thread_mode="agent" selected=selected %}
+      </div>
+    </aside>
+
+    <main class="chat-main {% if not selected %}hidden-mobile{% endif %}">
+      {% if selected %}
+        {% include "messaging/partials/chat.html" with conversation=selected messages=chat_messages message_form=message_form peer_name=peer_name peer_subtitle=peer_subtitle show_back=True back_url=back_url reply_url_name=reply_url_name unread_divider=unread_divider scroll_to_unread=scroll_to_unread %}
+      {% else %}
+        <div class="chat-placeholder">
+          <div class="chat-placeholder-icon">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          </div>
+          <h2>{{ agent.display_name }}</h2>
+          <p class="text-muted">Select a conversation to reply to renters.</p>
+        </div>
+      {% endif %}
+    </main>
+  </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/chat.js" defer></script>
+{% if selected %}
+<script>
+  window.__chatPoll = {
+    panel: "{% url 'messaging:chat_partial' selected.id %}",
+    threads: "{% url 'messaging:threads_partial' %}?selected={{ selected.id }}"
+  };
+</script>
+{% endif %}
+{% endblock %}

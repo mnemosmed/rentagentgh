@@ -1,0 +1,36 @@
+{% load chat_extras %}
+{% for item in conversations %}
+<a
+  href="{% if thread_mode == 'agent' %}?id={{ item.conversation.id }}{% else %}{% url 'messaging:conversation' item.conversation.id %}{% endif %}"
+  class="chat-thread {% if selected and selected.id == item.conversation.id %}active{% endif %}{% if item.unread_count %} chat-thread--unread{% endif %}"
+>
+  <div class="chat-avatar" style="--avatar-hue: {{ item.peer_name|avatar_hue }}">{{ item.peer_name|initials }}</div>
+  <div class="chat-thread-body">
+    <div class="chat-thread-top">
+      <span class="chat-thread-name">{{ item.peer_name }}</span>
+      {% if item.last_message %}
+      <time class="chat-thread-time {% if item.unread_count %}chat-thread-time--unread{% endif %}">{{ item.last_message.created_at|chat_list_time }}</time>
+      {% endif %}
+    </div>
+    <div class="chat-thread-bottom">
+      {% if item.last_message %}
+      <p class="chat-thread-preview {% if item.unread_count %}chat-thread-preview--unread{% endif %}">
+        {% if item.last_message.sender_id == request.user.id %}<span class="chat-preview-you">You: </span>{% endif %}{{ item.preview }}
+      </p>
+      {% else %}
+      <p class="chat-thread-preview text-muted">No messages yet</p>
+      {% endif %}
+      {% if item.unread_count %}
+      <span class="chat-unread">{{ item.unread_count }}</span>
+      {% endif %}
+    </div>
+  </div>
+</a>
+{% empty %}
+<div class="chat-list-empty">
+  <p>No conversations yet.</p>
+  {% if thread_mode == 'renter' %}
+  <a href="{% url 'agents:search' %}" class="btn btn-primary btn-sm">Find an agent</a>
+  {% endif %}
+</div>
+{% endfor %}

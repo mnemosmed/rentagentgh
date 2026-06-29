@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load chat_extras %}
+{% block title %}Profile — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="settings-page">
+  <header class="settings-header">
+    <div class="chat-avatar chat-avatar--lg" style="--avatar-hue: {{ user.profile.display_name|default:user.first_name|avatar_hue }}">
+      {{ user.profile.display_name|default:user.first_name|default:user.email|initials }}
+    </div>
+    <div>
+      <h1 class="settings-title">Account settings</h1>
+      <p class="text-muted">Manage your profile and sign-in details.</p>
+    </div>
+  </header>
+
+  <div class="settings-grid">
+    <section class="settings-card">
+      <div class="settings-card-head">
+        <h2>Profile</h2>
+        <p class="text-muted">Information shown to agents when you message them.</p>
+      </div>
+      <form method="post" class="settings-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="profile">
+        <div class="form-group">
+          <label class="label" for="{{ form.display_name.id_for_label }}">{{ form.display_name.label }}</label>
+          {{ form.display_name }}
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="label" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+            {{ form.first_name }}
+          </div>
+          <div class="form-group">
+            <label class="label" for="{{ form.phone.id_for_label }}">{{ form.phone.label }}</label>
+            {{ form.phone }}
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+          {{ form.email }}
+        </div>
+        <div class="settings-form-actions">
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="settings-card">
+      <div class="settings-card-head">
+        <h2>Security</h2>
+        <p class="text-muted">Update your password to keep your account secure.</p>
+      </div>
+      <form method="post" class="settings-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="password">
+        {% for field in password_form %}
+        <div class="form-group">
+          <label class="label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}<p class="form-error">{{ field.errors.0 }}</p>{% endif %}
+        </div>
+        {% endfor %}
+        <div class="settings-form-actions">
+          <button type="submit" class="btn btn-primary">Update password</button>
+        </div>
+      </form>
+    </section>
+
+    {% if contact_templates %}
+    <section class="settings-card">
+      <div class="settings-card-head">
+        <h2>Request templates</h2>
+        <p class="text-muted">Saved contact forms you can reuse when messaging agents.</p>
+      </div>
+      <ul class="template-list">
+        {% for t in contact_templates %}
+        <li class="template-list-item">
+          <div>
+            <strong>{{ t.name }}</strong>
+            <p class="template-list-meta">{{ t.property_type }} · {{ t.location }}{% if t.budget_min or t.budget_max %} · GHS {{ t.budget_min|default:"?" }}–{{ t.budget_max|default:"?" }}{% endif %}</p>
+          </div>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_template">
+            <input type="hidden" name="template_id" value="{{ t.id }}">
+            <button type="submit" class="btn btn-ghost btn-sm">Delete</button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

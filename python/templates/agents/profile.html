@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% load chat_extras %}
+{% block title %}{{ agent.display_name }} — Rental Agent{% endblock %}
+
+{% block content %}
+<div class="agent-profile-page">
+  <a href="{% url 'agents:search' %}?area={{ agent.primary_area|urlencode }}" class="back-link">&larr; Back to search</a>
+
+  <header class="agent-profile-hero card">
+    <div class="chat-avatar chat-avatar--lg" style="--avatar-hue: {{ agent.display_name|avatar_hue }}">{{ agent.display_name|initials }}</div>
+    <div class="agent-profile-hero-body">
+      <div class="agent-profile-hero-top">
+        <div>
+          <h1>{{ agent.display_name }}</h1>
+          <p class="text-muted">{{ agent.primary_area }}</p>
+          {% if agent.is_verified %}<span class="badge badge-verified">Verified agent</span>{% endif %}
+        </div>
+        {% if rating_stats.overall_rating %}
+        <div class="agent-rating-pill">
+          <span class="stars">★ {{ rating_stats.overall_rating }}</span>
+          <span class="text-muted">{{ rating_stats.total_ratings }} review{{ rating_stats.total_ratings|pluralize }}</span>
+        </div>
+        {% endif %}
+      </div>
+      {% if agent.short_bio %}<p class="agent-bio">{{ agent.short_bio }}</p>{% endif %}
+      <div class="agent-areas">
+        <span class="agent-areas-label">Areas served</span>
+        <div class="agent-area-tags">
+          {% for a in agent.covered_areas %}
+          <span class="badge">{{ a }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </header>
+
+  {% if is_owner and edit_form %}
+  <section class="settings-card">
+    <div class="settings-card-head">
+      <h2>Edit profile</h2>
+      <p class="text-muted">Update how renters see your listing.</p>
+    </div>
+    <form method="post" class="settings-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="edit">
+      {% for field in edit_form %}
+      <div class="form-group">
+        <label class="label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<p class="form-hint">{{ field.help_text }}</p>{% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary">Save changes</button>
+    </form>
+  </section>
+
+  {% elif user.is_authenticated and not is_owner %}
+  <section class="settings-card contact-form">
+    <div class="settings-card-head">
+      <h2>Contact {{ agent.display_name }}</h2>
+      <p class="text-muted">Send a structured request — budget, move-in date, and preferences.</p>
+    </div>
+
+    {% if contact_templates %}
+    <div class="contact-template-bar">
+      <div class="form-group">
+        <label class="label" for="contact-template-picker">Use a saved template</label>
+        <select id="contact-template-picker" class="select">
+          <option value="">Choose a template…</option>
+          {% for t in contact_templates %}
+          <option value="{{ t.id }}" data-template="{{ t.form_data_json|escapejs }}">{{ t.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'agents:contact' agent.id %}" class="settings-form" id="contact-request-form">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="label" for="{{ contact_form.property_type.id_for_label }}">{{ contact_form.property_type.label }}</label>
+        {{ contact_form.property_type }}
+      </div>
+      <div class="form-group">
+        <label class="label" for="{{ contact_form.location.id_for_label }}">{{ contact_form.location.label }}</label>
+        {{ contact_form.location }}
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="label" for="{{ contact_form.budget_min.id_for_label }}">{{ contact_form.budget_min.label }}</label>
+          {{ contact_form.budget_min }}
+        </div>
+        <div class="form-group">
+          <label class="label" for="{{ contact_form.budget_max.id_for_label }}">{{ contact_form.budget_max.label }}</label>
+          {{ contact_form.budget_max }}
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="label" for="{{ contact_form.move_in.id_for_label }}">{{ contact_form.move_in.label }}</label>
+        {{ contact_form.move_in }}
+      </div>
+      <div class="form-group">
+        <label class="label" for="{{ contact_form.preferences.id_for_label }}">{{ contact_form.preferences.label }}</label>
+        {{ contact_form.preferences }}
+      </div>
+      <div class="contact-form-actions">
+        <button type="submit" class="btn btn-primary">Send request</button>
+        <button type="button" class="btn btn-outline" id="toggle-save-template" aria-expanded="{% if show_save_template_panel %}true{% else %}false{% endif %}" aria-controls="save-template-panel">
+          Save as template
+        </button>
+      </div>
+    </form>
+
+    <form method="post" class="save-template-panel" id="save-template-panel"{% if not show_save_template_panel %} hidden{% endif %}>
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save_template">
+      <p class="text-muted">Save the current form to reuse with other agents.</p>
+      <div class="save-template-row">
+        <input type="text" name="template_name" class="input" placeholder="Template name, e.g. 2-bed East Legon" maxlength="80" required>
+        <button type="submit" class="btn btn-primary btn-sm">Save template</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="settings-card">
+    <div class="settings-card-head">
+      <h2>Rate this agent</h2>
+    </div>
+    {% if user_rating %}
+      <p class="rating-thanks">You rated {% include "includes/star_display.html" with value=user_rating.overall %} — thank you!</p>
+    {% else %}
+    <form method="post" class="settings-form rating-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="rate">
+      {% include "includes/star_rating_field.html" with field=rating_form.helpfulness %}
+      {% include "includes/star_rating_field.html" with field=rating_form.responsiveness %}
+      {% include "includes/star_rating_field.html" with field=rating_form.trustworthiness %}
+      <div class="form-group">
+        <label class="label" for="{{ rating_form.comment.id_for_label }}">{{ rating_form.comment.label }}</label>
+        {{ rating_form.comment }}
+      </div>
+      <button type="submit" class="btn btn-primary">Submit rating</button>
+    </form>
+    {% endif %}
+  </section>
+
+  {% elif not user.is_authenticated %}
+  <section class="settings-card text-center">
+    <p><a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary">Sign in to contact agent</a></p>
+  </section>
+  {% endif %}
+
+  {% if reviews %}
+  <section class="settings-card">
+    <div class="settings-card-head"><h2>Reviews</h2></div>
+    {% for r in reviews %}
+    <div class="review-row">
+      <div class="review-row-stars">{% include "includes/star_display.html" with value=r.overall %}</div>
+      {% if r.comment %}<p>{{ r.comment }}</p>{% endif %}
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if user.is_authenticated and not is_owner %}
+<script src="/static/js/contact-template.js" defer></script>
+{% endif %}
+{% endblock %}

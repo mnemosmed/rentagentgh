@@ -1,0 +1,6 @@
+{% load chat_extras %}
+<span class="star-display" aria-label="{{ value|star_count }} out of 5 stars">
+  {% for i in "12345" %}
+  <span class="star-display-icon{% if forloop.counter <= value|star_count %} star-display-icon--filled{% endif %}" aria-hidden="true">★</span>
+  {% endfor %}
+</span>

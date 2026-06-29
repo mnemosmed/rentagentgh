@@ -1,0 +1,19 @@
+<form action="{{ action }}" method="get" class="area-search-form{% if compact %} area-search-form--compact{% endif %}">
+  <div class="area-search" data-area-search data-areas-id="{{ areas_id }}">
+    <input
+      type="text"
+      name="area"
+      class="input area-search-input"
+      placeholder="{{ placeholder|default:'Enter area, e.g. East Legon' }}"
+      value="{{ value|default:'' }}"
+      autocomplete="off"
+      {% if required %}required{% endif %}
+      aria-autocomplete="list"
+      aria-expanded="false"
+      aria-controls="{{ areas_id }}-list"
+    >
+    <ul id="{{ areas_id }}-list" class="area-search-list" role="listbox" hidden></ul>
+  </div>
+  {{ areas|json_script:areas_id }}
+  <button type="submit" class="btn btn-primary area-search-submit">{{ button_label|default:'Search agents' }}</button>
+</form>

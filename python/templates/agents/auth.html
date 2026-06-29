@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load chat_extras %}
+{% block title %}Agent Login — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="settings-page settings-page--narrow">
+  <header class="settings-header settings-header--center">
+    <h1 class="settings-title">Claim your agent profile</h1>
+    <p class="text-muted">Find your listing by name and verify with your phone number.</p>
+  </header>
+
+  {% if step == "verify" and agent %}
+  <section class="settings-card">
+    <div class="settings-card-head">
+      <h2>Verify phone</h2>
+      <p class="text-muted">Claiming <strong>{{ agent.display_name }}</strong> · {{ agent.primary_area }}</p>
+    </div>
+    <form method="post" class="settings-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="verify">
+      <div class="form-group">
+        <label class="label">Verification code</label>
+        <input type="text" name="otp" class="input" maxlength="6" pattern="[0-9]{6}" placeholder="6-digit code" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">Verify & claim</button>
+    </form>
+  </section>
+  {% else %}
+  <section class="settings-card">
+    <form method="post" class="settings-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="search">
+      {% for field in form %}
+      <div class="form-group">
+        <label class="label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary" style="width:100%;">Send verification code</button>
+    </form>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

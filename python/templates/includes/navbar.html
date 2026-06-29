@@ -1,0 +1,30 @@
+<nav class="navbar">
+  <div class="container navbar-inner">
+    <a href="{% url 'core:home' %}" class="navbar-brand">
+      <span class="logo-mark">RG</span>
+      <span>RentAgentGhana</span>
+    </a>
+    <div class="navbar-links">
+      <a href="{% url 'agents:search' %}" class="btn btn-ghost btn-sm">Find Agents</a>
+      {% if user.is_authenticated %}
+        {% if user.claimed_agents.exists %}
+          <a href="{% url 'agents:dashboard' %}" class="btn btn-ghost btn-sm nav-messages-link">
+            Dashboard
+            {% if unread_message_count %}<span class="nav-unread-badge">{{ unread_message_count }}</span>{% endif %}
+          </a>
+        {% else %}
+          <a href="{% url 'messaging:inbox' %}" class="btn btn-ghost btn-sm nav-messages-link">
+            Messages
+            {% if unread_message_count %}<span class="nav-unread-badge">{{ unread_message_count }}</span>{% endif %}
+          </a>
+        {% endif %}
+        <a href="{% url 'accounts:profile' %}" class="btn btn-ghost btn-sm">Profile</a>
+        <a href="{% url 'accounts:logout' %}" class="btn btn-outline btn-sm">Sign out</a>
+      {% else %}
+        <a href="{% url 'accounts:login' %}" class="btn btn-ghost btn-sm">Sign in</a>
+        <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-sm">Get started</a>
+        <a href="{% url 'agents:auth' %}" class="btn btn-outline btn-sm">Agent login</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Sign in — {{ SITE_NAME }}{% endblock %}
+{% block content %}
+<div class="container" style="padding:3rem 1rem;max-width:24rem;">
+  <h1 class="text-center">Sign in</h1>
+  <div class="card" style="margin-top:1.5rem;">
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      {% for field in form %}
+      <div class="form-group">
+        <label class="label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<p style="color:hsl(var(--destructive));font-size:.875rem;">{{ field.errors.0 }}</p>{% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary" style="width:100%;">Sign in</button>
+    </form>
+    <p class="text-center text-muted" style="margin-top:1rem;font-size:.875rem;">
+      <a href="{% url 'accounts:password_reset' %}">Forgot password?</a> ·
+      <a href="{% url 'accounts:phone_auth' %}">Phone sign-in</a> ·
+      <a href="{% url 'accounts:signup' %}">Create account</a>
+    </p>
+  </div>
+</div>
+{% endblock %}
