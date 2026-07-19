@@ -7,9 +7,9 @@ from core.views import manifest_view, service_worker_view
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    # PWA endpoints must live at the site root for correct scope.
     path("manifest.webmanifest", manifest_view, name="manifest"),
     path("sw.js", service_worker_view, name="service_worker"),
+    path("api/", include("api.urls")),
     path("", include("core.urls")),
     path("accounts/", include("accounts.urls")),
     path("agents/", include("agents.urls")),

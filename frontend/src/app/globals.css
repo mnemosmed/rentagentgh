@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --pop: #ff5a5f;
+  --navy: #0b132b;
+  --white: #ffffff;
+  --gray: #edf2f7;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-white text-navy antialiased;
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+}
+
+@layer components {
+  .container-app {
+    @apply mx-auto w-full max-w-6xl px-4;
+  }
+}

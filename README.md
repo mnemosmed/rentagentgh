@@ -1,26 +1,28 @@
 # RentAgentGhana
 
-Finding an apartment in Accra is harder than it should be. Renters chase agents across TikTok, WhatsApp, and word of mouth — repeating the same budget, room count, and move-in date to people who may not even cover their area. There is no simple way to discover which agents actually work in East Legon, Madina, Cantonments, or Osu, or to keep those conversations in one place.
+Finding an apartment in Accra is harder than it should be. Renters chase agents across TikTok, WhatsApp, and word of mouth — repeating the same budget, room count, and move-in date to people who may not even cover their area.
 
-**RentAgentGhana** solves that. Renters search by neighborhood, browse agents who serve that area (sorted by ratings), and send a structured rental request in seconds. Agents get notified by SMS and can reply on the platform — whether they have claimed their profile or not.
+**RentAgentGhana** solves that. Renters search by neighborhood, browse agents who serve that area (sorted by ratings), and unlock contacts + messaging with a weekly or monthly pass.
 
-## What it does
+## Architecture
 
-- **Search by area** — find agents by the neighborhoods they cover, not random listings
-- **Structured requests** — budget, bedrooms, move-in date, and notes sent in one message
-- **In-platform chat** — keep renter–agent conversations in one thread
-- **Agent profiles & ratings** — compare agents before you reach out
-- **SMS notifications** — agents are alerted when someone contacts them
-- **Profile claiming** — agents verify ownership of their listing via phone OTP
+Monorepo with two apps:
 
-## Who it is for
+| App | Stack | Role |
+|-----|--------|------|
+| `frontend/` | Next.js 15 (App Router) + Tailwind | Modern renter UI |
+| `python/` | Django 5 + DRF + SimpleJWT | API + legacy HTML UI |
 
-- **Renters** in Accra looking for a faster, clearer way to reach rental agents
-- **Rental agents** who want inquiries from people searching in areas they actually serve
+```
+Browser → Next.js (Vercel) → JWT Bearer → Django API (Render) → Postgres / Paystack / Arkesel
+```
 
-## For developers
+Phase 1 Next.js pages: landing, search, agent profile, phone login, access purchase.
+Messaging and agent dashboard still use the Django templates for now.
 
-The app is a Django 5 project with PostgreSQL and Arkesel SMS, in the `python/` directory.
+## Local development
+
+### 1. Django API
 
 ```powershell
 cd python
@@ -36,80 +38,85 @@ python manage.py seed_agents
 python manage.py runserver
 ```
 
-Open http://127.0.0.1:8000/
+API health: http://127.0.0.1:8000/api/health/
+
+### 2. Next.js frontend
+
+```powershell
+cd frontend
+copy .env.local.example .env.local
+npm install
+npm run dev
+```
+
+Open http://localhost:3000/
 
 ### Environment
 
-Copy `python/.env.example` to `python/.env` and configure:
+**Django** (`python/.env`):
 
 | Variable | Purpose |
 |----------|---------|
-| `DATABASE_URL` | PostgreSQL connection (default: `localhost:5433`) |
-| `ARKESEL_API_KEY` | SMS for OTP and agent notifications |
-| `SMS_ENABLED` | Set `False` to log SMS to the console in development |
-| `SITE_URL` | Public URL used in SMS links |
-| `PAYSTACK_SECRET_KEY` | Paystack secret key (server-side charges + webhook signature) |
-| `PAYSTACK_PUBLIC_KEY` | Paystack public key |
-| `RENTER_WEEKLY_AMOUNT_GHS` | Weekly access fee (GHS). Default `5`. `0` = free |
-| `RENTER_MONTHLY_AMOUNT_GHS` | Monthly access fee (GHS). Default `18`. `0` = free |
-| `CSRF_TRUSTED_ORIGINS` | Comma-separated HTTPS origins (required in production) |
+| `DATABASE_URL` | PostgreSQL connection |
+| `FRONTEND_URL` | Next.js origin (CORS/CSRF), e.g. `http://localhost:3000` |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated allowed origins |
+| `ARKESEL_API_KEY` | SMS for OTP |
+| `SMS_ENABLED` | `False` logs SMS to console in development |
+| `SITE_URL` | Public Django URL (webhooks / legacy links) |
+| `PAYSTACK_SECRET_KEY` / `PAYSTACK_PUBLIC_KEY` | Payments |
+| `RENTER_WEEKLY_AMOUNT_GHS` / `RENTER_MONTHLY_AMOUNT_GHS` | Plan prices (default 5 / 18) |
 
-### Payments (Paystack)
+**Next.js** (`frontend/.env.local`):
 
-Renters buy time-limited access to **all** agent contacts and messaging:
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_API_URL` | Django base URL, e.g. `http://127.0.0.1:8000` |
+
+### Key API routes
+
+| Method | Path | Notes |
+|--------|------|-------|
+| POST | `/api/auth/phone/send/` | Send OTP |
+| POST | `/api/auth/phone/verify/` | Verify OTP → JWT |
+| POST | `/api/auth/token/refresh/` | Refresh access token |
+| GET | `/api/me/` | Current user + access status |
+| GET | `/api/areas/` | Area list |
+| GET | `/api/agents/search/?area=` | Auth required |
+| GET | `/api/agents/<uuid>/` | Agent detail (contacts gated) |
+| GET | `/api/payments/plans/` | Weekly/monthly plans |
+| POST | `/api/payments/unlock/` | Start Paystack checkout |
+| GET | `/api/payments/confirm/?reference=` | Verify payment |
+
+Paystack webhook stays at `POST /payments/webhook/`.
+
+Auth from the browser uses Next.js httpOnly cookies + a BFF proxy at `/api/bff/*`.
+
+## Payments
 
 - **Weekly** — GHS 5 for 7 days
 - **Monthly** — GHS 18 for 30 days
 
-While access is active they can see phone/WhatsApp, send contact requests, and
-message any agent. When it expires, existing chats stay readable but sending and
-contact details stay locked until they renew. Renewals stack onto the current
-expiry date.
+Checkout returns to the Next.js page `/access/callback`, which calls `/api/payments/confirm/`.
 
-Flow:
+## Deploy
 
-1. Renter picks a plan on an agent profile → `POST /payments/unlock/`
-2. Server creates an `AccessPass` and calls Paystack `transaction/initialize`,
-   then redirects to Paystack checkout.
-3. Paystack redirects back to `/payments/callback/`, which verifies the charge
-   and sets `expires_at`.
-4. A signed webhook at `/payments/webhook/` (HMAC-SHA512) confirms server-to-server.
+**Django (Render)** — use root `render.yaml` (`rootDir: python`). Set `FRONTEND_URL` and `CORS_ALLOWED_ORIGINS` to your Vercel URL.
 
-Set the webhook URL in the Paystack dashboard to
-`https://<your-app>.onrender.com/payments/webhook/`.
+**Next.js (Vercel)** — import the `frontend/` directory (or root with framework preset pointing at `frontend`). Set `NEXT_PUBLIC_API_URL` to the Render API URL.
 
-### PWA
+Set Paystack webhook to `https://<django>.onrender.com/payments/webhook/`.
 
-The app is installable and works offline for cached pages:
-
-- `/manifest.webmanifest` — app manifest (name, icons, theme)
-- `/sw.js` — service worker (network-first pages, cache-first static, offline fallback)
-- Icons live in `python/static/icons/`
-
-### Deploy to Render
-
-The repo ships a `render.yaml` blueprint (web service + free PostgreSQL).
-
-1. Push to GitHub.
-2. In Render: **New +** → **Blueprint** → select this repo.
-3. Set the secret env vars (`PAYSTACK_SECRET_KEY`, `PAYSTACK_PUBLIC_KEY`,
-   `ARKESEL_API_KEY`, `SITE_URL`, `CSRF_TRUSTED_ORIGINS`) in the dashboard.
-4. Render runs `python/build.sh` (collectstatic + migrate + seed) and serves via
-   Gunicorn + WhiteNoise.
-
-### Project structure
+## Project structure
 
 ```
+frontend/                 # Next.js renter UI
 python/
-├── accounts/     # Auth, phone OTP
-├── agents/       # Search, profiles, claim flow
-├── messaging/    # Chat and notifications
-├── feedback/     # Renter feedback forms
-├── payments/     # Paystack contact-unlock payments
-├── config/       # Django settings
-├── static/       # CSS, JS, PWA icons
-└── templates/    # Server-rendered HTML + PWA offline page
+├── api/                  # DRF + SimpleJWT endpoints
+├── accounts/             # Auth, phone OTP
+├── agents/               # Search, profiles, claim flow
+├── messaging/            # Chat and notifications
+├── payments/             # AccessPass + Paystack
+├── templates/            # Legacy server-rendered HTML
+└── ...
+render.yaml
 ```
-
-Root-level files: `render.yaml` (Render blueprint), `python/build.sh`,
-`python/Procfile`, `python/runtime.txt`.

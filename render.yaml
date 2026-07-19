@@ -52,3 +52,7 @@ services:
         value: "RentAgent"
       - key: SMS_ENABLED
         value: "True"
+      - key: FRONTEND_URL
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false

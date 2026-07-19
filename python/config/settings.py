@@ -1,3 +1,4 @@
+from datetime import timedelta
 from pathlib import Path
 
 import environ
@@ -22,17 +23,22 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
+    "rest_framework",
+    "rest_framework_simplejwt",
     "accounts",
     "agents",
     "messaging",
     "feedback",
     "payments",
     "core",
+    "api",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -62,7 +68,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# PostgreSQL (recommended): postgres://user:pass@localhost:5432/rentagentgh
 DATABASES = {
     "default": env.db(
         "DATABASE_URL",
@@ -106,8 +111,8 @@ EMAIL_BACKEND = env(
 
 SITE_NAME = "RentAgentGhana"
 SITE_URL = env("SITE_URL", default="http://127.0.0.1:8000")
+FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:3000")
 
-# Arkesel SMS (https://developers.arkesel.com/)
 ARKESEL_API_KEY = env("ARKESEL_API_KEY", default="")
 ARKESEL_SENDER_ID = env("ARKESEL_SENDER_ID", default="RentAgent")
 SMS_ENABLED = env.bool("SMS_ENABLED", default=bool(ARKESEL_API_KEY))
@@ -116,21 +121,47 @@ AGENT_SMS_COOLDOWN_MINUTES = env.int("AGENT_SMS_COOLDOWN_MINUTES", default=15)
 MAX_MESSAGE_LENGTH = 5000
 MAX_CHAT_MEDIA_BYTES = 25 * 1024 * 1024
 
-# Paystack (https://paystack.com/docs/api/)
 PAYSTACK_SECRET_KEY = env("PAYSTACK_SECRET_KEY", default="")
 PAYSTACK_PUBLIC_KEY = env("PAYSTACK_PUBLIC_KEY", default="")
 PAYSTACK_CURRENCY = env("PAYSTACK_CURRENCY", default="GHS")
-# Renter access plans (GHS). Set 0 to grant that plan free without Paystack.
 RENTER_WEEKLY_AMOUNT_GHS = env.float("RENTER_WEEKLY_AMOUNT_GHS", default=5.0)
 RENTER_MONTHLY_AMOUNT_GHS = env.float("RENTER_MONTHLY_AMOUNT_GHS", default=18.0)
 
-# --- Production security & hosting ---------------------------------------
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=12),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+    "ROTATE_REFRESH_TOKENS": False,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+CORS_ALLOWED_ORIGINS = env.list(
+    "CORS_ALLOWED_ORIGINS",
+    default=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        FRONTEND_URL,
+    ],
+)
+CORS_ALLOWED_ORIGINS = list(dict.fromkeys([o for o in CORS_ALLOWED_ORIGINS if o]))
+CORS_ALLOW_CREDENTIALS = True
+
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
-# Render provides the external hostname via RENDER_EXTERNAL_HOSTNAME.
 _render_host = env("RENDER_EXTERNAL_HOSTNAME", default="")
 if _render_host:
     ALLOWED_HOSTS = list(ALLOWED_HOSTS) + [_render_host]
     CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS + [f"https://{_render_host}"]
+
+if FRONTEND_URL and FRONTEND_URL not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS = list(CSRF_TRUSTED_ORIGINS) + [FRONTEND_URL]
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
