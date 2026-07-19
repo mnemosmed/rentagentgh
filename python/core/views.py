@@ -33,7 +33,7 @@ def manifest_view(request):
         "display": "standalone",
         "orientation": "portrait-primary",
         "background_color": "#ffffff",
-        "theme_color": "#16804a",
+        "theme_color": "#FF5A5F",
         "categories": ["business", "productivity", "lifestyle"],
         "icons": [
             {"src": static("icons/icon-192.png"), "sizes": "192x192", "type": "image/png", "purpose": "any"},

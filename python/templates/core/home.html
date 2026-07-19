@@ -1,58 +1,171 @@
 {% extends "base.html" %}
 {% block title %}RentAgentGhana — Find Rental Agents in Accra{% endblock %}
 {% block meta_description %}Find trusted rental agents in Accra by neighborhood — East Legon, Cantonments, Osu and more.{% endblock %}
+{% block body_class %}landing-page{% endblock %}
 
 {% block content %}
-<section class="hero">
+<section class="hero hero--landing">
   <div class="hero-bg"></div>
-  <div class="container text-center" style="position:relative;">
-    <p class="badge" style="margin-bottom:1rem;">Accra rental agents · No listing spam</p>
+  <div class="container hero-content">
+    <p class="hero-brand">RentAgentGhana</p>
     <h1>Find rental agents who actually work in your area</h1>
-    <p class="lead">RentAgentGhana helps you find rent agents by the areas they serve and message them instantly — all in one place.</p>
+    <p class="lead">Search Accra by neighborhood, unlock contacts, and message agents — all in one place.</p>
+    <div class="hero-actions">
+      <a href="{% url 'agents:search' %}" class="btn btn-primary btn-lg">Find agents</a>
+      {% if not user.is_authenticated %}
+      <a href="{% url 'accounts:signup' %}" class="btn btn-outline btn-lg">Get started</a>
+      {% endif %}
+    </div>
+    <div class="hero-search">
+      {% include "includes/area_search.html" with areas=all_areas areas_id="home-areas" action=search_action required=True %}
+    </div>
+  </div>
+</section>
 
-    {% include "includes/area_search.html" with areas=all_areas areas_id="home-areas" action=search_action required=True %}
-    <p class="text-muted" style="margin-top:1rem;font-size:.875rem;">Sign in to search · GHS 5/week or GHS 18/month for contacts &amp; messages</p>
+<section class="section section-proof">
+  <div class="container text-center">
+    <p class="proof-line">Built for Accra renters tired of chasing agents across WhatsApp and Facebook.</p>
   </div>
 </section>
 
 <section class="section">
   <div class="container">
-    <h2 class="text-center" style="margin-bottom:2rem;">How it works</h2>
-    <div class="grid-3">
-      <div class="card text-center">
-        <h3>1. Search by area</h3>
-        <p class="text-muted">Enter your preferred neighborhood in Accra.</p>
-      </div>
-      <div class="card text-center">
-        <h3>2. Choose an agent</h3>
-        <p class="text-muted">Browse agents who serve your area, sorted by ratings.</p>
-      </div>
-      <div class="card text-center">
-        <h3>3. Send a structured request</h3>
-        <p class="text-muted">Budget, rooms, move-in date — sent in seconds.</p>
-      </div>
+    <div class="section-head">
+      <h2>Everything you need to find and contact rental agents</h2>
+      <p class="section-sub">Search by area, compare ratings, then unlock phone numbers and chat for a week or a month.</p>
+    </div>
+    <div class="feature-rows">
+      <article class="feature-row">
+        <div class="feature-copy">
+          <h3>Discover agents by neighborhood</h3>
+          <p>Enter East Legon, Osu, Cantonments, or any Accra suburb and see agents who actually serve that area — sorted by ratings.</p>
+        </div>
+        <div class="feature-visual" aria-hidden="true">
+          <div class="ui-mock ui-mock--search">
+            <div class="ui-mock-bar"></div>
+            <div class="ui-mock-row"><span></span><strong>East Legon</strong></div>
+            <div class="ui-mock-row is-active"><span></span><strong>Verified agents nearby</strong></div>
+            <div class="ui-mock-row"><span></span><strong>Sorted by rating</strong></div>
+          </div>
+        </div>
+      </article>
+      <article class="feature-row feature-row--reverse">
+        <div class="feature-copy">
+          <h3>Message with a clear request</h3>
+          <p>Send budget, rooms, and move-in date in one structured message. Keep every conversation in one inbox.</p>
+        </div>
+        <div class="feature-visual" aria-hidden="true">
+          <div class="ui-mock ui-mock--chat">
+            <div class="ui-mock-bubble ui-mock-bubble--in">Looking for a 2-bedroom in Airport Residential…</div>
+            <div class="ui-mock-bubble ui-mock-bubble--out">I have two options. When can you view?</div>
+          </div>
+        </div>
+      </article>
     </div>
   </div>
 </section>
 
 <section class="section section-alt">
-  <div class="container grid-2">
-    <div>
-      <h2>The old way is exhausting</h2>
-      <ul class="text-muted">
-        <li>You chase agents across multiple platforms</li>
-        <li>You repeat the same request again and again</li>
-        <li>You don't know which agents work in your area</li>
+  <div class="container">
+    <div class="section-head">
+      <h2>Finding a place in Accra shouldn’t feel like a full-time job</h2>
+      <p class="section-sub">Stop repeating yourself across platforms. RentAgentGhana puts area-focused agents and messaging in one workspace.</p>
+    </div>
+    <div class="value-grid">
+      <article class="value-card">
+        <span class="value-icon" aria-hidden="true">◎</span>
+        <h3>Search by area</h3>
+        <p>Find agents who work where you want to live — not random city-wide listings.</p>
+      </article>
+      <article class="value-card">
+        <span class="value-icon" aria-hidden="true">☰</span>
+        <h3>Structured requests</h3>
+        <p>Budget, rooms, and move-in date sent clearly the first time.</p>
+      </article>
+      <article class="value-card">
+        <span class="value-icon" aria-hidden="true">⌁</span>
+        <h3>One inbox</h3>
+        <p>Keep chats with agents together instead of scattered WhatsApp threads.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="pricing">
+  <div class="container pricing-layout">
+    <div class="pricing-copy">
+      <h2>Simple pricing. Full access.</h2>
+      <ul class="pricing-points">
+        <li>Unlock all agent contacts and messaging</li>
+        <li>Choose weekly or monthly access</li>
+        <li>Renew anytime — time stacks on your plan</li>
+        <li>Secure checkout with Paystack</li>
       </ul>
     </div>
-    <div>
-      <h2>RentAgentGhana fixes that</h2>
-      <ul class="text-muted">
-        <li>Find agents by town/suburb</li>
-        <li>Keep conversations on the platform</li>
-        <li>Agents can claim and verify profiles</li>
-        <li>No payments required to get started</li>
+    <div class="pricing-card">
+      <div class="pricing-toggle" role="group" aria-label="Access plans">
+        <button type="button" class="pricing-toggle-btn is-active" data-plan="weekly">Weekly</button>
+        <button type="button" class="pricing-toggle-btn" data-plan="monthly">Monthly</button>
+      </div>
+      <div class="pricing-plan" data-plan-panel="weekly">
+        <div class="pricing-plan-top">
+          <div>
+            <p class="pricing-plan-name">Weekly access</p>
+            <p class="pricing-badge">Best for short searches</p>
+          </div>
+          <div class="pricing-amount">
+            <span class="pricing-price">GHS 5</span>
+            <span class="pricing-period">for 7 days</span>
+          </div>
+        </div>
+      </div>
+      <div class="pricing-plan" data-plan-panel="monthly" hidden>
+        <div class="pricing-plan-top">
+          <div>
+            <p class="pricing-plan-name">Monthly access</p>
+            <p class="pricing-badge">Save vs weekly</p>
+          </div>
+          <div class="pricing-amount">
+            <span class="pricing-price">GHS 18</span>
+            <span class="pricing-period">for 30 days</span>
+          </div>
+        </div>
+      </div>
+      <ul class="pricing-features">
+        <li>All agent phone &amp; WhatsApp contacts</li>
+        <li>Send rental requests</li>
+        <li>Full messaging while active</li>
+        <li>Chats stay readable after expiry</li>
       </ul>
+      {% if user.is_authenticated %}
+      <a href="{% url 'agents:search' %}" class="btn btn-primary pricing-cta">Find an agent to unlock</a>
+      {% else %}
+      <a href="{% url 'accounts:signup' %}?next={% url 'agents:search' %}" class="btn btn-primary pricing-cta">Get started</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt" id="faq">
+  <div class="container faq-wrap">
+    <h2 class="text-center">Frequently asked questions</h2>
+    <div class="faq-list">
+      <details class="faq-item" open>
+        <summary>What is RentAgentGhana?</summary>
+        <p>A simple way for Accra renters to find agents by the neighborhoods they serve, then contact and message them in one place.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Do I pay per agent?</summary>
+        <p>No. You pay for weekly (GHS 5) or monthly (GHS 18) access to all agent contacts and messaging.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What happens when my access expires?</summary>
+        <p>You can still read your chats, but sending messages and viewing phone numbers stays locked until you renew.</p>
+      </details>
+      <details class="faq-item">
+        <summary>I’m an agent — is this free for me?</summary>
+        <p>Yes. Agents can claim and verify their profile and reply to renters from the dashboard at no charge.</p>
+      </details>
     </div>
   </div>
 </section>
@@ -60,13 +173,15 @@
 {% if testimonials %}
 <section class="section">
   <div class="container">
-    <h2 class="text-center" style="margin-bottom:2rem;">What renters say</h2>
+    <div class="section-head">
+      <h2>What renters say</h2>
+    </div>
     <div class="grid-3">
       {% for t in testimonials %}
-      <div class="card">
+      <div class="card testimonial-card">
         <div class="stars">{% for i in "12345" %}{% if forloop.counter <= t.rating %}★{% else %}☆{% endif %}{% endfor %}</div>
-        <p style="margin:.75rem 0;">{{ t.going_well|truncatewords:40 }}</p>
-        <p class="text-muted" style="font-size:.875rem;">— {{ t.display_name|default:"Renter" }}</p>
+        <p>{{ t.going_well|truncatewords:40 }}</p>
+        <p class="text-muted testimonial-by">— {{ t.display_name|default:"Renter" }}</p>
       </div>
       {% endfor %}
     </div>
@@ -74,11 +189,31 @@
 </section>
 {% endif %}
 
-<section class="section text-center">
-  <div class="container">
+<section class="section cta-band">
+  <div class="container text-center">
     <h2>Ready to find your agent?</h2>
-    <p class="text-muted" style="margin-bottom:1.5rem;">Search by neighborhood and message agents directly.</p>
-    <a href="{% url 'agents:search' %}" class="btn btn-primary">Start searching</a>
+    <p class="section-sub">Search by neighborhood and message agents who actually work there.</p>
+    <a href="{% url 'agents:search' %}" class="btn btn-primary btn-lg">Start searching</a>
   </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var root = document.getElementById('pricing');
+  if (!root) return;
+  var buttons = root.querySelectorAll('.pricing-toggle-btn');
+  var panels = root.querySelectorAll('[data-plan-panel]');
+  buttons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var plan = btn.getAttribute('data-plan');
+      buttons.forEach(function (b) { b.classList.toggle('is-active', b === btn); });
+      panels.forEach(function (panel) {
+        panel.hidden = panel.getAttribute('data-plan-panel') !== plan;
+      });
+    });
+  });
+})();
+</script>
 {% endblock %}
