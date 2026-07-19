@@ -61,6 +61,25 @@
       <p class="text-muted">Send a structured request — budget, move-in date, and preferences.</p>
     </div>
 
+    {% if not contact_unlocked %}
+    <div class="contact-paywall">
+      <p class="contact-paywall-lead">Unlock this agent to send your request{% if agent.phone or agent.whatsapp %} and see their direct contact{% endif %}.</p>
+      <form method="post" action="{% url 'payments:unlock' agent.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary btn-lg">
+          Unlock contact — GHS {{ contact_fee }}
+        </button>
+      </form>
+      <p class="form-hint">Secure one-time payment via Paystack. You only pay once per agent.</p>
+    </div>
+    {% else %}
+    {% if agent.phone or agent.whatsapp %}
+    <div class="contact-details-unlocked">
+      {% if agent.phone %}<p><strong>Phone:</strong> <a href="tel:{{ agent.phone }}">{{ agent.phone }}</a></p>{% endif %}
+      {% if agent.whatsapp %}<p><strong>WhatsApp:</strong> <a href="https://wa.me/{{ agent.whatsapp }}" target="_blank" rel="noopener">{{ agent.whatsapp }}</a></p>{% endif %}
+    </div>
+    {% endif %}
+
     {% if contact_templates %}
     <div class="contact-template-bar">
       <div class="form-group">
@@ -120,6 +139,7 @@
         <button type="submit" class="btn btn-primary btn-sm">Save template</button>
       </div>
     </form>
+    {% endif %}
   </section>
 
   <section class="settings-card">

@@ -650,3 +650,41 @@ footer { border-top: 1px solid hsl(var(--border)); padding: 2rem 0; margin-top: 
   .agent-area-tags { justify-content: center; }
 }
 
+
+/* --- Contact paywall (Paystack unlock) --- */
+.contact-paywall {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  border: 1px dashed var(--border, #d8dee4);
+  border-radius: 12px;
+  background: var(--surface-muted, #f7f9fb);
+}
+.contact-paywall-lead {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+.contact-paywall .form-hint {
+  margin-top: 0.75rem;
+}
+.btn-lg {
+  padding: 0.85rem 1.6rem;
+  font-size: 1.05rem;
+}
+.contact-details-unlocked {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 10px;
+  background: var(--surface-muted, #f1f7f2);
+  border: 1px solid var(--border, #dfe7e0);
+}
+.contact-details-unlocked p { margin: 0.25rem 0; }
+
+/* --- PWA install button --- */
+.pwa-install-btn {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 60;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+}
+.offline-page { padding: 3rem 1rem; }

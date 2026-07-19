@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "agents",
     "messaging",
     "feedback",
+    "payments",
     "core",
 ]
 
@@ -114,3 +115,28 @@ OTP_EXPIRY_MINUTES = 10
 AGENT_SMS_COOLDOWN_MINUTES = env.int("AGENT_SMS_COOLDOWN_MINUTES", default=15)
 MAX_MESSAGE_LENGTH = 5000
 MAX_CHAT_MEDIA_BYTES = 25 * 1024 * 1024
+
+# Paystack (https://paystack.com/docs/api/)
+PAYSTACK_SECRET_KEY = env("PAYSTACK_SECRET_KEY", default="")
+PAYSTACK_PUBLIC_KEY = env("PAYSTACK_PUBLIC_KEY", default="")
+PAYSTACK_CURRENCY = env("PAYSTACK_CURRENCY", default="GHS")
+# Fee (in GHS) a renter pays to unlock contacting an agent. Set 0 to disable.
+CONTACT_UNLOCK_AMOUNT_GHS = env.float("CONTACT_UNLOCK_AMOUNT_GHS", default=5.0)
+
+# --- Production security & hosting ---------------------------------------
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
+# Render provides the external hostname via RENDER_EXTERNAL_HOSTNAME.
+_render_host = env("RENDER_EXTERNAL_HOSTNAME", default="")
+if _render_host:
+    ALLOWED_HOSTS = list(ALLOWED_HOSTS) + [_render_host]
+    CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS + [f"https://{_render_host}"]
+
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=2592000)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True

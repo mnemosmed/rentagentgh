@@ -3,6 +3,7 @@
 python/.env
 
 # Python / Django
+python/_smoke_test.py
 python/venv/
 python/__pycache__/
 python/**/__pycache__/

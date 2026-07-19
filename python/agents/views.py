@@ -1,9 +1,12 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+
+from payments.services import has_contact_access
 
 from accounts.models import PhoneOTP, Role, UserRole, ContactTemplate, normalize_phone
 from accounts.arkesel import SMSError
@@ -100,6 +103,7 @@ def search_view(request):
 def agent_profile_view(request, agent_id):
     agent = get_object_or_404(Agent, pk=agent_id)
     is_owner = request.user.is_authenticated and agent.claimed_by_id == request.user.id
+    contact_unlocked = has_contact_access(request.user, agent)
     rating_stats = agent.rating_stats
     user_rating = None
     if request.user.is_authenticated:
@@ -177,6 +181,8 @@ def agent_profile_view(request, agent_id):
             "contact_form": contact_form,
             "contact_templates": contact_templates,
             "show_save_template_panel": show_save_template_panel,
+            "contact_unlocked": contact_unlocked,
+            "contact_fee": settings.CONTACT_UNLOCK_AMOUNT_GHS,
             "reviews": agent.ratings.select_related("user").order_by("-created_at")[:20],
         },
     )
@@ -186,6 +192,12 @@ def agent_profile_view(request, agent_id):
 @require_http_methods(["POST"])
 def contact_agent_view(request, agent_id):
     agent = get_object_or_404(Agent, pk=agent_id)
+    if not has_contact_access(request.user, agent):
+        messages.error(
+            request,
+            f"Unlock contact with {agent.display_name} to send a request.",
+        )
+        return redirect("agents:profile", agent_id=agent.id)
     form = ContactAgentForm(request.POST)
     if form.is_valid():
         conversation, _ = Conversation.objects.get_or_create(user=request.user, agent=agent)

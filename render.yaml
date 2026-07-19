@@ -1,0 +1,52 @@
+# Render Blueprint for RentAgentGhana
+# Docs: https://render.com/docs/blueprint-spec
+# Deploy: push to GitHub, then in Render click "New +" -> "Blueprint" and pick this repo.
+
+databases:
+  - name: rentagent-db
+    databaseName: rentagentgh
+    plan: free
+    region: oregon
+
+services:
+  - type: web
+    name: rentagentghana
+    runtime: python
+    plan: free
+    region: oregon
+    rootDir: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.4"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: rentagent-db
+          property: connectionString
+      - key: SITE_URL
+        sync: false
+      - key: CSRF_TRUSTED_ORIGINS
+        sync: false
+      # Paystack — set these in the Render dashboard (secret)
+      - key: PAYSTACK_SECRET_KEY
+        sync: false
+      - key: PAYSTACK_PUBLIC_KEY
+        sync: false
+      - key: PAYSTACK_CURRENCY
+        value: "GHS"
+      - key: CONTACT_UNLOCK_AMOUNT_GHS
+        value: "5"
+      # Arkesel SMS — set in dashboard
+      - key: ARKESEL_API_KEY
+        sync: false
+      - key: ARKESEL_SENDER_ID
+        value: "RentAgent"
+      - key: SMS_ENABLED
+        value: "True"
