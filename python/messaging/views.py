@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -7,6 +8,7 @@ from django.views.decorators.http import require_http_methods
 
 from accounts.models import Role, UserRole
 from agents.models import Agent
+from payments.services import can_renter_message, plan_choices_for_template
 
 from messaging.notifications import notify_agent_new_inquiry
 
@@ -95,17 +97,30 @@ def inbox_view(request, conversation_id=None):
         selected = get_object_or_404(Conversation, pk=conversation_id, user=request.user)
     elif request.GET.get("agent"):
         agent = get_object_or_404(Agent, pk=request.GET["agent"])
+        if not can_renter_message(request.user):
+            messages.error(
+                request,
+                "Get weekly or monthly access to message agents.",
+            )
+            return redirect("agents:profile", agent_id=agent.id)
         selected, _ = Conversation.objects.get_or_create(user=request.user, agent=agent)
 
     if not selected:
         clear_all_unread_dividers(request)
 
     chat_context = {}
+    renter_can_send = True
+    access_plans = []
     if selected:
         chat_ctx = _conversation_chat_context(request, selected)
         chat_messages = chat_ctx["messages"]
         unread_divider = chat_ctx["unread_divider"]
         chat_context = _chat_peer_context(request, selected)
+        # Agents reply freely; renters need an active access pass to send.
+        if not chat_context.get("reply_url_name"):
+            renter_can_send = can_renter_message(request.user)
+            if not renter_can_send:
+                access_plans = plan_choices_for_template()
 
     return render(
         request,
@@ -117,6 +132,8 @@ def inbox_view(request, conversation_id=None):
             "message_form": MessageForm(),
             "unread_divider": unread_divider,
             "scroll_to_unread": bool(unread_divider),
+            "renter_can_send": renter_can_send,
+            "access_plans": access_plans,
             **chat_context,
         },
     )
@@ -163,6 +180,14 @@ def send_message_view(request, conversation_id):
     if not _user_can_access_conversation(request.user, conversation):
         return HttpResponseForbidden()
 
+    is_renter = conversation.user_id == request.user.id
+    if is_renter and not can_renter_message(request.user):
+        msg = "Your access has expired. Renew weekly or monthly access to keep messaging agents."
+        if request.headers.get("HX-Request"):
+            return chat_partial_view(request, conversation_id, upload_error=msg)
+        messages.error(request, msg)
+        return redirect("messaging:conversation", conversation_id=conversation_id)
+
     upload_error = None
     form = MessageForm(request.POST, request.FILES)
     if form.is_valid():
@@ -179,7 +204,7 @@ def send_message_view(request, conversation_id):
             )
             conversation.updated_at = timezone.now()
             conversation.save(update_fields=["updated_at"])
-            if conversation.user_id == request.user.id:
+            if is_renter:
                 notify_agent_new_inquiry(conversation, request.user)
         else:
             upload_error = "Add a message or attach a photo/video."
@@ -190,8 +215,6 @@ def send_message_view(request, conversation_id):
     if request.headers.get("HX-Request"):
         return chat_partial_view(request, conversation_id, upload_error=upload_error)
     if upload_error:
-        from django.contrib import messages
-
         messages.error(request, upload_error)
     return redirect("messaging:conversation", conversation_id=conversation_id)
 
@@ -205,6 +228,12 @@ def chat_partial_view(request, conversation_id, upload_error=None):
     mark_conversation_read(conversation, request.user)
     unread_divider = get_unread_divider(request, conversation)
     ctx = _chat_peer_context(request, conversation)
+    renter_can_send = True
+    access_plans = []
+    if not ctx.get("reply_url_name"):
+        renter_can_send = can_renter_message(request.user)
+        if not renter_can_send:
+            access_plans = plan_choices_for_template()
     return render(
         request,
         "messaging/partials/chat.html",
@@ -215,6 +244,8 @@ def chat_partial_view(request, conversation_id, upload_error=None):
             "upload_error": upload_error,
             "unread_divider": unread_divider,
             "scroll_to_unread": False,
+            "renter_can_send": renter_can_send,
+            "access_plans": access_plans,
             **ctx,
         },
     )

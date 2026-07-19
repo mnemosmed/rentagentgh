@@ -120,8 +120,9 @@ MAX_CHAT_MEDIA_BYTES = 25 * 1024 * 1024
 PAYSTACK_SECRET_KEY = env("PAYSTACK_SECRET_KEY", default="")
 PAYSTACK_PUBLIC_KEY = env("PAYSTACK_PUBLIC_KEY", default="")
 PAYSTACK_CURRENCY = env("PAYSTACK_CURRENCY", default="GHS")
-# Fee (in GHS) a renter pays to unlock contacting an agent. Set 0 to disable.
-CONTACT_UNLOCK_AMOUNT_GHS = env.float("CONTACT_UNLOCK_AMOUNT_GHS", default=5.0)
+# Renter access plans (GHS). Set 0 to grant that plan free without Paystack.
+RENTER_WEEKLY_AMOUNT_GHS = env.float("RENTER_WEEKLY_AMOUNT_GHS", default=5.0)
+RENTER_MONTHLY_AMOUNT_GHS = env.float("RENTER_MONTHLY_AMOUNT_GHS", default=18.0)
 
 # --- Production security & hosting ---------------------------------------
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])

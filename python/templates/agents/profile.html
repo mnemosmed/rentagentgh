@@ -63,16 +63,30 @@
 
     {% if not contact_unlocked %}
     <div class="contact-paywall">
-      <p class="contact-paywall-lead">Unlock this agent to send your request{% if agent.phone or agent.whatsapp %} and see their direct contact{% endif %}.</p>
-      <form method="post" action="{% url 'payments:unlock' agent.id %}">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-primary btn-lg">
-          Unlock contact — GHS {{ contact_fee }}
-        </button>
-      </form>
-      <p class="form-hint">Secure one-time payment via Paystack. You only pay once per agent.</p>
+      <p class="contact-paywall-lead">
+        Get access to contact any agent{% if agent.phone or agent.whatsapp %}, see phone &amp; WhatsApp,{% endif %}
+        and send messages.
+      </p>
+      <div class="access-plan-grid">
+        {% for plan in access_plans %}
+        <form method="post" action="{% url 'payments:unlock' %}" class="access-plan-card">
+          {% csrf_token %}
+          <input type="hidden" name="plan" value="{{ plan.id }}">
+          <input type="hidden" name="next" value="{{ request.path }}">
+          <span class="access-plan-label">{{ plan.label }}</span>
+          <span class="access-plan-price">GHS {{ plan.amount_ghs|floatformat:0 }}</span>
+          <button type="submit" class="btn btn-primary">
+            {% if plan.id == "weekly" %}Unlock for 1 week{% else %}Unlock for 1 month{% endif %}
+          </button>
+        </form>
+        {% endfor %}
+      </div>
+      <p class="form-hint">Secure payment via Paystack. Access covers all agents until it expires.</p>
     </div>
     {% else %}
+    {% if access_expires_at %}
+    <p class="access-active-note">Access active until <strong>{{ access_expires_at|date:"j M Y" }}</strong>.</p>
+    {% endif %}
     {% if agent.phone or agent.whatsapp %}
     <div class="contact-details-unlocked">
       {% if agent.phone %}<p><strong>Phone:</strong> <a href="tel:{{ agent.phone }}">{{ agent.phone }}</a></p>{% endif %}

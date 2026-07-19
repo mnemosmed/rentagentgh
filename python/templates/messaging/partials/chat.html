@@ -63,6 +63,25 @@
     {% endfor %}
   </div>
 
+  {% if renter_can_send is False %}
+  <div class="chat-access-expired">
+    <p>Your access has expired. Renew to keep messaging agents. You can still read this chat.</p>
+    <div class="access-plan-grid access-plan-grid--compact">
+      {% for plan in access_plans %}
+      <form method="post" action="{% url 'payments:unlock' %}" class="access-plan-card">
+        {% csrf_token %}
+        <input type="hidden" name="plan" value="{{ plan.id }}">
+        <input type="hidden" name="next" value="{{ request.path }}">
+        <span class="access-plan-label">{{ plan.label }}</span>
+        <span class="access-plan-price">GHS {{ plan.amount_ghs|floatformat:0 }}</span>
+        <button type="submit" class="btn btn-primary btn-sm">
+          {% if plan.id == "weekly" %}1 week{% else %}1 month{% endif %}
+        </button>
+      </form>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
   <form
     class="chat-composer"
     method="post"
@@ -87,4 +106,5 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M1.101 21.757L23.8 12.029 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"/></svg>
     </button>
   </form>
+  {% endif %}
 </div>

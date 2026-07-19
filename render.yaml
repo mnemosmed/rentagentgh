@@ -41,8 +41,10 @@ services:
         sync: false
       - key: PAYSTACK_CURRENCY
         value: "GHS"
-      - key: CONTACT_UNLOCK_AMOUNT_GHS
+      - key: RENTER_WEEKLY_AMOUNT_GHS
         value: "5"
+      - key: RENTER_MONTHLY_AMOUNT_GHS
+        value: "18"
       # Arkesel SMS — set in dashboard
       - key: ARKESEL_API_KEY
         sync: false

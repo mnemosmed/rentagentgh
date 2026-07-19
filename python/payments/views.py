@@ -1,19 +1,15 @@
 import json
 import logging
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
-from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods, require_POST
 
-from agents.models import Agent
-
-from .models import ContactUnlock
+from .models import AccessPass
 from .paystack import (
     PaystackError,
     initialize_transaction,
@@ -21,49 +17,71 @@ from .paystack import (
     verify_webhook_signature,
 )
 from .services import (
-    contact_fee_pesewas,
-    get_or_create_pending_unlock,
-    has_contact_access,
+    VALID_PLANS,
+    get_or_create_pending_pass,
+    has_active_access,
+    plan_fee_pesewas,
 )
 
 logger = logging.getLogger(__name__)
 
 
+def _safe_next_url(raw: str | None) -> str:
+    """Prefer an onsite next URL (agent profile), else search."""
+    nxt = (raw or "").strip()
+    if nxt.startswith("/") and not nxt.startswith("//"):
+        return nxt
+    return reverse("agents:search")
+
+
+def _pop_payment_next(request) -> str:
+    return _safe_next_url(request.session.pop("payment_next", None))
+
+
 @login_required
 @require_POST
-def unlock_contact_view(request, agent_id):
-    """Start (or short-circuit) a payment to unlock contacting an agent."""
-    agent = get_object_or_404(Agent, pk=agent_id)
+def unlock_access_view(request):
+    """Start (or short-circuit) payment for weekly/monthly renter access."""
+    plan = (request.POST.get("plan") or "").strip().lower()
+    next_url = _safe_next_url(request.POST.get("next") or request.GET.get("next"))
 
-    if has_contact_access(request.user, agent):
-        return redirect("agents:profile", agent_id=agent.id)
+    if plan not in VALID_PLANS:
+        messages.error(request, "Choose a weekly or monthly access plan.")
+        return redirect(next_url)
 
-    # Free tier / dev mode: unlock immediately without hitting Paystack.
-    if contact_fee_pesewas() <= 0:
-        unlock = get_or_create_pending_unlock(request.user, agent)
-        unlock.mark_paid("free")
-        messages.success(request, f"You can now contact {agent.display_name}.")
-        return redirect("agents:profile", agent_id=agent.id)
+    if has_active_access(request.user):
+        messages.info(request, "You already have active access. Renewing will extend it.")
 
-    unlock = get_or_create_pending_unlock(request.user, agent)
+    if plan_fee_pesewas(plan) <= 0:
+        access = get_or_create_pending_pass(request.user, plan)
+        access.mark_paid("free")
+        messages.success(
+            request,
+            f"Access unlocked until {access.expires_at:%d %b %Y}. "
+            "You can contact agents and send messages.",
+        )
+        return redirect(next_url)
+
+    access = get_or_create_pending_pass(request.user, plan)
+    request.session["payment_next"] = next_url
     callback_url = request.build_absolute_uri(reverse("payments:callback"))
     try:
         data = initialize_transaction(
-            email=unlock.email,
-            amount=unlock.amount,
-            reference=unlock.reference,
+            email=access.email,
+            amount=access.amount,
+            reference=access.reference,
             callback_url=callback_url,
-            currency=unlock.currency,
+            currency=access.currency,
             metadata={
-                "agent_id": str(agent.id),
                 "user_id": request.user.id,
-                "purpose": "contact_unlock",
+                "plan": plan,
+                "purpose": "renter_access",
             },
         )
     except PaystackError as exc:
-        logger.error("Unlock init failed for %s: %s", agent.id, exc)
+        logger.error("Access pass init failed for user %s: %s", request.user.id, exc)
         messages.error(request, "Could not start payment. Please try again.")
-        return redirect("agents:profile", agent_id=agent.id)
+        return redirect(next_url)
 
     return redirect(data["authorization_url"])
 
@@ -73,30 +91,41 @@ def unlock_contact_view(request, agent_id):
 def payment_callback_view(request):
     """Paystack redirects here after checkout; verify and finalize."""
     reference = request.GET.get("reference") or request.GET.get("trxref")
+    next_url = _pop_payment_next(request)
     if not reference:
         messages.error(request, "Missing payment reference.")
-        return redirect("core:home")
+        return redirect(next_url)
 
-    unlock = get_object_or_404(ContactUnlock, reference=reference, user=request.user)
+    access = get_object_or_404(AccessPass, reference=reference, user=request.user)
 
-    if unlock.is_paid:
-        messages.success(request, f"You can now contact {unlock.agent.display_name}.")
-        return redirect("agents:profile", agent_id=unlock.agent_id)
+    if access.is_paid:
+        messages.success(
+            request,
+            f"You have access until {access.expires_at:%d %b %Y}.",
+        )
+        return redirect(next_url)
 
     try:
         data = verify_transaction(reference)
     except PaystackError:
-        messages.error(request, "We couldn't confirm your payment yet. If you were charged, it will be applied shortly.")
-        return redirect("agents:profile", agent_id=unlock.agent_id)
+        messages.error(
+            request,
+            "We couldn't confirm your payment yet. If you were charged, it will be applied shortly.",
+        )
+        return redirect(next_url)
 
     if data.get("status") == "success":
-        unlock.mark_paid(data.get("gateway_response", ""))
-        messages.success(request, f"Payment received — you can now contact {unlock.agent.display_name}.")
+        access.mark_paid(data.get("gateway_response", ""))
+        messages.success(
+            request,
+            f"Payment received — access until {access.expires_at:%d %b %Y}. "
+            "You can contact agents and send messages.",
+        )
     else:
-        unlock.mark_failed(data.get("gateway_response", ""))
+        access.mark_failed(data.get("gateway_response", ""))
         messages.error(request, "Payment was not completed.")
 
-    return redirect("agents:profile", agent_id=unlock.agent_id)
+    return redirect(next_url)
 
 
 @csrf_exempt
@@ -116,9 +145,9 @@ def paystack_webhook_view(request):
     if event.get("event") == "charge.success":
         data = event.get("data", {})
         reference = data.get("reference")
-        unlock = ContactUnlock.objects.filter(reference=reference).first()
-        if unlock and not unlock.is_paid:
-            unlock.mark_paid(data.get("gateway_response", "webhook"))
-            logger.info("Unlock %s marked paid via webhook.", reference)
+        access = AccessPass.objects.filter(reference=reference).first()
+        if access and not access.is_paid:
+            access.mark_paid(data.get("gateway_response", "webhook"))
+            logger.info("Access pass %s marked paid via webhook.", reference)
 
     return HttpResponse(status=200)

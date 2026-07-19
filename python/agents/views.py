@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -6,7 +5,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from payments.services import has_contact_access
+from payments.services import (
+    access_expires_at,
+    has_contact_access,
+    plan_choices_for_template,
+)
 
 from accounts.models import PhoneOTP, Role, UserRole, ContactTemplate, normalize_phone
 from accounts.arkesel import SMSError
@@ -182,7 +185,8 @@ def agent_profile_view(request, agent_id):
             "contact_templates": contact_templates,
             "show_save_template_panel": show_save_template_panel,
             "contact_unlocked": contact_unlocked,
-            "contact_fee": settings.CONTACT_UNLOCK_AMOUNT_GHS,
+            "access_plans": plan_choices_for_template(),
+            "access_expires_at": access_expires_at(request.user),
             "reviews": agent.ratings.select_related("user").order_by("-created_at")[:20],
         },
     )
@@ -195,7 +199,7 @@ def contact_agent_view(request, agent_id):
     if not has_contact_access(request.user, agent):
         messages.error(
             request,
-            f"Unlock contact with {agent.display_name} to send a request.",
+            "Get weekly or monthly access to contact agents and send messages.",
         )
         return redirect("agents:profile", agent_id=agent.id)
     form = ContactAgentForm(request.POST)

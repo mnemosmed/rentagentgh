@@ -50,18 +50,29 @@ Copy `python/.env.example` to `python/.env` and configure:
 | `SITE_URL` | Public URL used in SMS links |
 | `PAYSTACK_SECRET_KEY` | Paystack secret key (server-side charges + webhook signature) |
 | `PAYSTACK_PUBLIC_KEY` | Paystack public key |
-| `CONTACT_UNLOCK_AMOUNT_GHS` | Fee a renter pays to unlock an agent (GHS). `0` = free |
+| `RENTER_WEEKLY_AMOUNT_GHS` | Weekly access fee (GHS). Default `5`. `0` = free |
+| `RENTER_MONTHLY_AMOUNT_GHS` | Monthly access fee (GHS). Default `18`. `0` = free |
 | `CSRF_TRUSTED_ORIGINS` | Comma-separated HTTPS origins (required in production) |
 
 ### Payments (Paystack)
 
-Renters pay a one-time fee per agent to unlock contacting them (send a request +
-see phone/WhatsApp). Flow:
+Renters buy time-limited access to **all** agent contacts and messaging:
 
-1. Renter clicks **Unlock contact** → `POST /payments/unlock/<agent_id>/`
-2. Server creates a `ContactUnlock` and calls Paystack `transaction/initialize`,
+- **Weekly** — GHS 5 for 7 days
+- **Monthly** — GHS 18 for 30 days
+
+While access is active they can see phone/WhatsApp, send contact requests, and
+message any agent. When it expires, existing chats stay readable but sending and
+contact details stay locked until they renew. Renewals stack onto the current
+expiry date.
+
+Flow:
+
+1. Renter picks a plan on an agent profile → `POST /payments/unlock/`
+2. Server creates an `AccessPass` and calls Paystack `transaction/initialize`,
    then redirects to Paystack checkout.
-3. Paystack redirects back to `/payments/callback/`, which verifies the charge.
+3. Paystack redirects back to `/payments/callback/`, which verifies the charge
+   and sets `expires_at`.
 4. A signed webhook at `/payments/webhook/` (HMAC-SHA512) confirms server-to-server.
 
 Set the webhook URL in the Paystack dashboard to

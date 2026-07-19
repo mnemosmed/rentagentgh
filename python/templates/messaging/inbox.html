@@ -19,7 +19,7 @@
 
     <main class="chat-main {% if not selected %}hidden-mobile{% endif %}">
       {% if selected %}
-        {% include "messaging/partials/chat.html" with conversation=selected messages=chat_messages message_form=message_form peer_name=peer_name peer_subtitle=peer_subtitle peer_profile_url=peer_profile_url show_back=show_back back_url=back_url reply_url_name=reply_url_name unread_divider=unread_divider scroll_to_unread=scroll_to_unread %}
+        {% include "messaging/partials/chat.html" with conversation=selected messages=chat_messages message_form=message_form peer_name=peer_name peer_subtitle=peer_subtitle peer_profile_url=peer_profile_url show_back=show_back back_url=back_url reply_url_name=reply_url_name unread_divider=unread_divider scroll_to_unread=scroll_to_unread renter_can_send=renter_can_send access_plans=access_plans %}
       {% else %}
         <div class="chat-placeholder">
           <div class="chat-placeholder-icon">
