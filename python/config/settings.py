@@ -110,8 +110,8 @@ EMAIL_BACKEND = env(
 )
 
 SITE_NAME = "RentAgentGhana"
-SITE_URL = env("SITE_URL", default="http://127.0.0.1:8000")
-FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:3000")
+SITE_URL = env("SITE_URL", default="http://127.0.0.1:8000").rstrip("/")
+FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:3000").rstrip("/")
 
 ARKESEL_API_KEY = env("ARKESEL_API_KEY", default="")
 ARKESEL_SENDER_ID = env("ARKESEL_SENDER_ID", default="RentAgent")
@@ -151,10 +151,14 @@ CORS_ALLOWED_ORIGINS = env.list(
         FRONTEND_URL,
     ],
 )
-CORS_ALLOWED_ORIGINS = list(dict.fromkeys([o for o in CORS_ALLOWED_ORIGINS if o]))
+CORS_ALLOWED_ORIGINS = list(
+    dict.fromkeys([o.rstrip("/") for o in CORS_ALLOWED_ORIGINS if o])
+)
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
+CSRF_TRUSTED_ORIGINS = [
+    o.rstrip("/") for o in env.list("CSRF_TRUSTED_ORIGINS", default=[]) if o
+]
 _render_host = env("RENDER_EXTERNAL_HOSTNAME", default="")
 if _render_host:
     ALLOWED_HOSTS = list(ALLOWED_HOSTS) + [_render_host]
