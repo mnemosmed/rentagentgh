@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 
 export function Navbar() {
   const [user, setUser] = useState<User | null>(null);
+  const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -17,10 +18,47 @@ export function Navbar() {
       .catch(() => setUser(null));
   }, []);
 
+  useEffect(() => {
+    if (!user) {
+      setUnread(0);
+      return;
+    }
+    const load = () => {
+      apiFetch<{ unread_count: number }>("/me/unread-count/")
+        .then((d) => setUnread(d.unread_count || 0))
+        .catch(() => setUnread(0));
+    };
+    load();
+    const id = window.setInterval(load, 15000);
+    return () => window.clearInterval(id);
+  }, [user]);
+
   async function logout() {
     await fetch("/api/auth/session", { method: "DELETE" });
     setUser(null);
     window.location.href = "/";
+  }
+
+  const inboxHref = user?.is_agent ? "/dashboard" : "/messages";
+  const inboxLabel = user?.is_agent ? "Dashboard" : "Messages";
+
+  function InboxLink({
+    className = "",
+    onClick,
+  }: {
+    className?: string;
+    onClick?: () => void;
+  }) {
+    return (
+      <Button href={inboxHref} variant="ghost" size="sm" className={className} onClick={onClick}>
+        {inboxLabel}
+        {unread > 0 && (
+          <span className="ml-1 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-pop px-1.5 py-0.5 text-[10px] font-bold text-white">
+            {unread > 99 ? "99+" : unread}
+          </span>
+        )}
+      </Button>
+    );
   }
 
   return (
@@ -53,9 +91,17 @@ export function Navbar() {
             </Button>
             {user ? (
               <>
-                <Button href="/access" variant="ghost" size="sm">
-                  Access
-                </Button>
+                <InboxLink />
+                {!user.is_agent && (
+                  <Button href="/access" variant="ghost" size="sm">
+                    Access
+                  </Button>
+                )}
+                {user.is_agent && (
+                  <Button href="/dashboard/profile" variant="ghost" size="sm">
+                    Profile
+                  </Button>
+                )}
                 <span className="hidden text-sm text-navy/60 lg:inline">
                   {user.display_name}
                 </span>
@@ -65,6 +111,9 @@ export function Navbar() {
               </>
             ) : (
               <>
+                <Button href="/agents/claim" variant="ghost" size="sm">
+                  For agents
+                </Button>
                 <Button href="/login" variant="ghost" size="sm">
                   Sign in
                 </Button>
@@ -83,15 +132,26 @@ export function Navbar() {
             </Button>
             {user ? (
               <>
-                <Button href="/access" variant="ghost" className="w-full justify-start" onClick={() => setOpen(false)}>
-                  Access
-                </Button>
+                <InboxLink className="w-full justify-start" onClick={() => setOpen(false)} />
+                {!user.is_agent && (
+                  <Button href="/access" variant="ghost" className="w-full justify-start" onClick={() => setOpen(false)}>
+                    Access
+                  </Button>
+                )}
+                {user.is_agent && (
+                  <Button href="/dashboard/profile" variant="ghost" className="w-full justify-start" onClick={() => setOpen(false)}>
+                    Profile
+                  </Button>
+                )}
                 <Button variant="outline" className="w-full" onClick={logout}>
                   Sign out
                 </Button>
               </>
             ) : (
               <>
+                <Button href="/agents/claim" variant="ghost" className="w-full justify-start" onClick={() => setOpen(false)}>
+                  For agents
+                </Button>
                 <Button href="/login" variant="ghost" className="w-full justify-start" onClick={() => setOpen(false)}>
                   Sign in
                 </Button>

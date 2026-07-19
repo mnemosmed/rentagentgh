@@ -48,12 +48,16 @@ export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
+  const isFormData =
+    typeof FormData !== "undefined" && options.body instanceof FormData;
+  const headers = new Headers(options.headers || {});
+  if (!isFormData && !headers.has("Content-Type") && options.body) {
+    headers.set("Content-Type", "application/json");
+  }
+
   const res = await fetch(`/api/bff${path}`, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
+    headers,
   });
   const data = await parseJson(res);
   if (!res.ok) throw new ApiRequestError(res.status, data);

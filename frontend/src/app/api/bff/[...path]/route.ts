@@ -20,28 +20,45 @@ async function refreshAccess(refresh: string): Promise<string | null> {
   return data.access || null;
 }
 
+async function readBody(request: NextRequest): Promise<{
+  body: BodyInit | undefined;
+  contentType: string | null;
+}> {
+  if (request.method === "GET" || request.method === "HEAD") {
+    return { body: undefined, contentType: null };
+  }
+
+  const contentType = request.headers.get("content-type") || "";
+
+  // Multipart: pass raw bytes and preserve boundary Content-Type.
+  if (contentType.includes("multipart/form-data")) {
+    const buf = await request.arrayBuffer();
+    return { body: buf, contentType };
+  }
+
+  const text = await request.text();
+  return { body: text || undefined, contentType: contentType || "application/json" };
+}
+
 async function forward(
-  request: NextRequest,
   pathParts: string[],
+  method: string,
+  search: string,
+  body: BodyInit | undefined,
+  contentType: string | null,
   accessToken?: string
 ) {
-  const search = request.nextUrl.search;
   const target = `${API_URL}/api/${pathParts.join("/")}${pathParts.length ? "/" : ""}${search}`;
   const headers = new Headers();
-  const contentType = request.headers.get("content-type");
   if (contentType) headers.set("Content-Type", contentType);
   if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
 
-  const init: RequestInit = {
-    method: request.method,
+  return fetch(target, {
+    method,
     headers,
+    body,
     cache: "no-store",
-  };
-  if (request.method !== "GET" && request.method !== "HEAD") {
-    init.body = await request.text();
-  }
-
-  return fetch(target, init);
+  });
 }
 
 export async function GET(
@@ -84,8 +101,18 @@ async function handle(
   context: { params: Promise<{ path: string[] }> }
 ) {
   const { path } = await context.params;
+  const search = request.nextUrl.search;
+  const { body, contentType } = await readBody(request);
+
   let access = await getAccessToken();
-  let upstream = await forward(request, path, access);
+  let upstream = await forward(
+    path,
+    request.method,
+    search,
+    body,
+    contentType,
+    access
+  );
 
   if (upstream.status === 401) {
     const refresh = await getRefreshToken();
@@ -93,9 +120,16 @@ async function handle(
       const newAccess = await refreshAccess(refresh);
       if (newAccess) {
         access = newAccess;
-        upstream = await forward(request, path, access);
-        const body = await upstream.text();
-        const res = new NextResponse(body, {
+        upstream = await forward(
+          path,
+          request.method,
+          search,
+          body,
+          contentType,
+          access
+        );
+        const resBody = await upstream.text();
+        const res = new NextResponse(resBody, {
           status: upstream.status,
           headers: {
             "Content-Type":
@@ -108,8 +142,8 @@ async function handle(
     }
   }
 
-  const body = await upstream.text();
-  return new NextResponse(body, {
+  const resBody = await upstream.text();
+  return new NextResponse(resBody, {
     status: upstream.status,
     headers: {
       "Content-Type": upstream.headers.get("Content-Type") || "application/json",

@@ -18,5 +18,5 @@ urlpatterns = [
     path("payments/", include("payments.urls")),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Always serve uploaded chat media from Django (Render has no separate object storage in Phase 2).
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

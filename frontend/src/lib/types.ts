@@ -51,6 +51,40 @@ export type Review = {
   created_at: string;
 };
 
+export type ConversationThread = {
+  id: string;
+  peer_name: string;
+  peer_subtitle: string;
+  preview: string;
+  unread_count: number;
+  updated_at: string;
+  last_message_at: string;
+  mode: "renter" | "agent";
+  agent_id?: string;
+  renter_id?: number;
+};
+
+export type ChatMessage = {
+  id: string;
+  sender_id: number;
+  content: string;
+  is_read: boolean;
+  media_type: string;
+  media_url: string | null;
+  created_at: string;
+};
+
+export type ConversationDetail = {
+  id: string;
+  mode: "renter" | "agent";
+  peer_name: string;
+  peer_subtitle: string;
+  peer_profile_url: string;
+  agent_id: string;
+  can_send: boolean;
+  messages: ChatMessage[];
+};
+
 export type ApiError = {
   detail?: string;
   [key: string]: unknown;
