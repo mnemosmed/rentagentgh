@@ -1,10 +1,23 @@
-<nav class="navbar">
+<nav class="navbar" id="site-nav">
   <div class="container navbar-inner">
     <a href="{% url 'core:home' %}" class="navbar-brand">
       <span class="logo-mark">RG</span>
-      <span>RentAgentGhana</span>
+      <span class="navbar-brand-full">RentAgentGhana</span>
+      <span class="navbar-brand-short">RentAgent</span>
     </a>
-    <div class="navbar-links">
+    <button
+      type="button"
+      class="nav-toggle"
+      id="nav-toggle"
+      aria-controls="navbar-menu"
+      aria-expanded="false"
+      aria-label="Open menu"
+    >
+      <span class="nav-toggle-bar" aria-hidden="true"></span>
+      <span class="nav-toggle-bar" aria-hidden="true"></span>
+      <span class="nav-toggle-bar" aria-hidden="true"></span>
+    </button>
+    <div class="navbar-links" id="navbar-menu">
       <a href="{% url 'agents:search' %}" class="btn btn-ghost btn-sm">Find Agents</a>
       {% if user.is_authenticated %}
         {% if user.claimed_agents.exists %}
@@ -28,3 +41,4 @@
     </div>
   </div>
 </nav>
+<div class="nav-backdrop" id="nav-backdrop" hidden></div>

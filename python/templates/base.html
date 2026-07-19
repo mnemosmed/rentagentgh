@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}Find trusted rental agents in Accra by neighborhood.{% endblock %}">
   <link rel="stylesheet" href="/static/css/main.css">
 
   {% load static %}
   <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#16804a">
+  <meta name="theme-color" content="#7c5cbf">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -20,11 +20,11 @@
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
   {% include "includes/navbar.html" %}
 
   {% if messages %}
-  <div class="container">
+  <div class="container flash-container">
     {% for message in messages %}
     <div class="messages-flash {{ message.tags }}">{{ message }}</div>
     {% endfor %}
@@ -33,14 +33,17 @@
 
   {% block content %}{% endblock %}
 
+  {% block footer %}
   <footer>
     <div class="container text-center">
       <p>Copyright {% now "Y" %} {{ SITE_NAME }}</p>
     </div>
   </footer>
+  {% endblock %}
   <button type="button" id="pwa-install-btn" class="btn btn-primary pwa-install-btn" hidden>Install app</button>
 
   <script src="/static/js/area-search.js" defer></script>
+  <script src="/static/js/nav.js" defer></script>
   <script>
     // Service worker registration
     if ('serviceWorker' in navigator) {

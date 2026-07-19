@@ -2,51 +2,53 @@
 {% block title %}{% if area %}Rental Agents in {{ area }} — {% endif %}{{ SITE_NAME }}{% endblock %}
 
 {% block content %}
-<div class="container" style="padding:2rem 1rem;">
+<div class="container page-pad">
   <h1 class="text-center">Find Rental Agents</h1>
-  <p class="text-center text-muted" style="margin-bottom:2rem;">Search by area to find agents who serve your preferred neighborhood</p>
+  <p class="text-center text-muted page-lead">Search by area to find agents who serve your preferred neighborhood</p>
 
   {% url 'agents:search' as search_url %}
   {% include "includes/area_search.html" with areas=all_areas areas_id="search-areas" action=search_url value=area button_label="Search" compact=True %}
 
   {% if area %}
     {% if agents %}
-      <p class="text-muted" style="margin-bottom:1rem;">{{ agents|length }} agent{{ agents|length|pluralize }} serving {{ area }}</p>
+      <p class="text-muted agent-results-count">{{ agents|length }} agent{{ agents|length|pluralize }} serving {{ area }}</p>
       <div class="grid-2">
         {% for agent in agents %}
         <div class="card agent-card">
-          <div style="display:flex;justify-content:space-between;align-items:start;gap:1rem;">
-            <div>
-              <h2 style="margin:0;font-size:1.25rem;">
+          <div class="agent-card-top">
+            <div class="agent-card-info">
+              <h2 class="agent-card-name">
                 <a href="{% url 'agents:profile' agent.id %}">{{ agent.display_name }}</a>
               </h2>
-              <p class="text-muted" style="margin:.25rem 0;">{{ agent.primary_area }}</p>
-              {% if agent.is_verified %}<span class="badge badge-verified">Verified</span>{% endif %}
-              {% if agent.id in contacted_ids %}<span class="badge">Contacted</span>{% endif %}
+              <p class="text-muted agent-card-area">{{ agent.primary_area }}</p>
+              <div class="agent-card-badges">
+                {% if agent.is_verified %}<span class="badge badge-verified">Verified</span>{% endif %}
+                {% if agent.id in contacted_ids %}<span class="badge">Contacted</span>{% endif %}
+              </div>
             </div>
             {% with stats=agent.rating_stats %}
             {% if stats.overall_rating %}
-            <div class="text-center">
-              <div class="stars" style="font-size:1.125rem;">★ {{ stats.overall_rating }}</div>
-              <div class="text-muted" style="font-size:.75rem;">{{ stats.total_ratings }} review{{ stats.total_ratings|pluralize }}</div>
+            <div class="agent-card-rating">
+              <div class="stars">★ {{ stats.overall_rating }}</div>
+              <div class="text-muted agent-card-reviews">{{ stats.total_ratings }} review{{ stats.total_ratings|pluralize }}</div>
             </div>
             {% endif %}
             {% endwith %}
           </div>
-          {% if agent.short_bio %}<p style="margin:1rem 0 0;">{{ agent.short_bio|truncatewords:30 }}</p>{% endif %}
-          <div style="margin-top:1rem;display:flex;flex-wrap:wrap;gap:.375rem;">
+          {% if agent.short_bio %}<p class="agent-card-bio">{{ agent.short_bio|truncatewords:30 }}</p>{% endif %}
+          <div class="agent-card-areas">
             {% for a in agent.covered_areas|slice:":5" %}
             <span class="badge">{{ a }}</span>
             {% endfor %}
           </div>
-          <div style="margin-top:1rem;">
+          <div class="agent-card-actions">
             <a href="{% url 'agents:profile' agent.id %}" class="btn btn-primary btn-sm">Contact agent</a>
           </div>
         </div>
         {% endfor %}
       </div>
     {% else %}
-      <div class="card text-center" style="max-width:28rem;margin:2rem auto;">
+      <div class="card text-center empty-state-card">
         <h3>No agents found</h3>
         <p class="text-muted">Try a nearby neighborhood or browse all areas.</p>
       </div>
