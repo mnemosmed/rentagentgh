@@ -400,11 +400,16 @@
     "is_verified": false
   },
   {
-    "display_name": "Selina real estate property agency",
+    "display_name": "Selina Real Estate Property Agency",
     "tiktok_handle": "",
     "tiktok_profile_url": "",
-    "primary_area": "Tse addo Accra",
-    "covered_areas": [],
+    "primary_area": "Tse Addo",
+    "covered_areas": [
+      "Tse Addo",
+      "Osu",
+      "Labone",
+      "Tse addo Accra"
+    ],
     "short_bio": null,
     "is_verified": false
   },
@@ -479,7 +484,9 @@
     "covered_areas": [
       "Osu",
       "Teshie",
-      "Spintex"
+      "Spintex",
+      "Tse Addo",
+      "Nungua"
     ],
     "short_bio": null,
     "is_verified": false
@@ -641,7 +648,9 @@
       "Gbawe",
       "Mamprobi",
       "Agege",
-      "Banana Inn"
+      "Banana Inn",
+      "Lartebioshie",
+      "Kaneshie"
     ],
     "short_bio": null,
     "is_verified": false
@@ -813,20 +822,6 @@
     "is_verified": false
   },
   {
-    "display_name": "RanaProperties",
-    "tiktok_handle": "",
-    "tiktok_profile_url": "",
-    "primary_area": "Teshie",
-    "covered_areas": [
-      "Teshie",
-      "Tse Addo",
-      "Spintex",
-      "Nungua"
-    ],
-    "short_bio": null,
-    "is_verified": false
-  },
-  {
     "display_name": "ELVIS-RENT IN ACCRA",
     "tiktok_handle": "@rent_accra.apartments",
     "tiktok_profile_url": "https://www.tiktok.com/@rent_accra.apartments",
@@ -864,19 +859,6 @@
       "Osu",
       "Achimota",
       "Nungua"
-    ],
-    "short_bio": null,
-    "is_verified": false
-  },
-  {
-    "display_name": "Selina Real Estate Property Agency",
-    "tiktok_handle": "",
-    "tiktok_profile_url": "",
-    "primary_area": "Tse Addo",
-    "covered_areas": [
-      "Tse Addo",
-      "Osu",
-      "Labone"
     ],
     "short_bio": null,
     "is_verified": false
@@ -1030,19 +1012,6 @@
       "North Legon",
       "Labone",
       "East Legon"
-    ],
-    "short_bio": null,
-    "is_verified": false
-  },
-  {
-    "display_name": "Ghana Rentals",
-    "tiktok_handle": "",
-    "tiktok_profile_url": "",
-    "primary_area": "Dansoman",
-    "covered_areas": [
-      "Dansoman",
-      "Lartebioshie",
-      "Kaneshie"
     ],
     "short_bio": null,
     "is_verified": false

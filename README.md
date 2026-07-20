@@ -34,6 +34,7 @@ copy .env.example .env
 
 python manage.py migrate
 python manage.py seed_agents
+python manage.py dedupe_agents   # safe if seed already produced same-name duplicates
 python manage.py runserver
 ```
 
