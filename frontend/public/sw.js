@@ -1,5 +1,5 @@
 /* RentAgentGhana service worker — network-first navigations, cache-first static assets. */
-const CACHE = "rentagent-next-v1";
+const CACHE = "rentagent-next-v2";
 const OFFLINE_URL = "/offline.html";
 const PRECACHE = [
   OFFLINE_URL,
