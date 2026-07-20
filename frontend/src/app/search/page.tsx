@@ -112,8 +112,11 @@ function SearchContent() {
                       <p className="mb-3 text-sm text-navy/70 line-clamp-3">{agent.short_bio}</p>
                     )}
                     <div className="mb-4 flex flex-wrap gap-1.5">
-                      {agent.covered_areas.slice(0, 5).map((a) => (
-                        <span key={a} className="rounded-full bg-graybg px-2.5 py-0.5 text-xs font-semibold">
+                      {agent.covered_areas.slice(0, 5).map((a, idx) => (
+                        <span
+                          key={`${agent.id}-${a}-${idx}`}
+                          className="rounded-full bg-graybg px-2.5 py-0.5 text-xs font-semibold"
+                        >
                           {a}
                         </span>
                       ))}

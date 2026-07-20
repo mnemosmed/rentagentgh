@@ -21,6 +21,7 @@ from messaging.services import build_agent_conversations, clear_all_unread_divid
 from messaging.views import _chat_peer_context, _conversation_chat_context
 
 from .areas import get_all_areas
+from .dedupe import unique_agents_by_name
 from .forms import (
     AgentClaimForm,
     AgentProfileForm,
@@ -68,7 +69,7 @@ def _sorted_agents(queryset):
             a.display_name.lower(),
         )
     )
-    return agents
+    return unique_agents_by_name(agents)
 
 
 @require_http_methods(["GET"])

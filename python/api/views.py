@@ -14,6 +14,7 @@ from accounts.models import PhoneOTP, Role, UserRole
 from accounts.phone_utils import is_valid_ghana_phone, normalize_phone
 from accounts.services import send_otp_sms
 from agents.areas import get_all_areas
+from agents.dedupe import unique_agents_by_name
 from agents.models import Agent
 from messaging.models import Conversation
 from payments.models import AccessPass
@@ -59,7 +60,7 @@ def _sorted_agents(queryset):
             a.display_name.lower(),
         )
     )
-    return agents
+    return unique_agents_by_name(agents)
 
 
 @api_view(["POST"])
