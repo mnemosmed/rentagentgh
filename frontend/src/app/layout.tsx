@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 
 import { Navbar } from "@/components/Navbar";
+import { PwaInstallButton } from "@/components/PwaInstallButton";
+import { ServiceWorkerRegister } from "@/components/PwaRegister";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -14,12 +16,34 @@ export const metadata: Metadata = {
   title: "RentAgentGhana — Find Rental Agents in Accra",
   description:
     "Find trusted rental agents in Accra by neighborhood — East Legon, Cantonments, Osu and more.",
+  applicationName: "RentAgentGhana",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "RentAgent",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export const viewport: Viewport = {
   themeColor: "#FF5A5F",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -37,6 +61,8 @@ export default function RootLayout({
             Copyright {new Date().getFullYear()} RentAgentGhana
           </div>
         </footer>
+        <PwaInstallButton />
+        <ServiceWorkerRegister />
       </body>
     </html>
   );

@@ -26,3 +26,14 @@ Open http://localhost:3000 — Django API should be running at `NEXT_PUBLIC_API_
 - `/agents/claim` — claim an agent listing via OTP
 
 Authenticated browser calls go through `/api/bff/*` (httpOnly JWT cookies). Multipart uploads (chat attachments) are forwarded with the original `Content-Type` boundary.
+
+## Progressive Web App
+
+The app is installable on desktop (Chrome/Edge) and mobile (Android Chrome; iOS Safari via Share → Add to Home Screen).
+
+- Manifest: `/manifest.webmanifest`
+- Service worker: `/sw.js` (registered in production builds)
+- Offline fallback: `/offline.html`
+- Icons: `/icons/`
+
+After deploy over HTTPS, open the site and use the **Install app** button when shown, or the browser’s install / Add to Home Screen control.

@@ -128,7 +128,7 @@ Checkout returns to the Next.js page `/access/callback`, which calls `/api/payme
 - `FRONTEND_URL` and `CORS_ALLOWED_ORIGINS` to your Vercel URL (no trailing slash)
 - `SITE_URL` to the public Render URL so chat media URLs resolve for the Next client
 
-**Next.js (Vercel)** — import the `frontend/` directory. Set `NEXT_PUBLIC_API_URL` to the Render API URL (no trailing slash).
+**Next.js (Vercel)** — import the `frontend/` directory. Set `NEXT_PUBLIC_API_URL` to the Render API URL (no trailing slash). The frontend ships as an installable PWA (manifest + service worker) over HTTPS.
 
 Set Paystack webhook to `https://<django>.onrender.com/payments/webhook/`.
 
