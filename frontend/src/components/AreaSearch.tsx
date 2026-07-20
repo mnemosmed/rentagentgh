@@ -10,9 +10,14 @@ import { Input } from "@/components/ui/Input";
 type Props = {
   initialArea?: string;
   buttonLabel?: string;
+  variant?: "default" | "hero";
 };
 
-export function AreaSearch({ initialArea = "", buttonLabel = "Search agents" }: Props) {
+export function AreaSearch({
+  initialArea = "",
+  buttonLabel = "Search agents",
+  variant = "default",
+}: Props) {
   const router = useRouter();
   const [area, setArea] = useState(initialArea);
   const [areas, setAreas] = useState<string[]>([]);
@@ -37,9 +42,23 @@ export function AreaSearch({ initialArea = "", buttonLabel = "Search agents" }: 
     router.push(`/search?area=${encodeURIComponent(value)}`);
   }
 
+  const isHero = variant === "hero";
+
   return (
-    <form onSubmit={onSubmit} className="mx-auto flex w-full max-w-xl flex-col gap-3 sm:flex-row">
-      <div className="relative min-w-0 flex-1">
+    <form
+      onSubmit={onSubmit}
+      className={
+        isHero
+          ? "flex w-full flex-col gap-0 overflow-hidden rounded-2xl border border-[#d8e0ea] bg-white p-1.5 shadow-card sm:flex-row sm:items-center"
+          : "mx-auto flex w-full max-w-xl flex-col gap-3 sm:flex-row"
+      }
+    >
+      <div className={`relative min-w-0 flex-1 ${isHero ? "" : ""}`}>
+        {isHero && (
+          <span className="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-pop">
+            <PinIcon />
+          </span>
+        )}
         <Input
           value={area}
           onChange={(e) => {
@@ -51,6 +70,11 @@ export function AreaSearch({ initialArea = "", buttonLabel = "Search agents" }: 
           placeholder="Enter area, e.g. East Legon"
           aria-autocomplete="list"
           required
+          className={
+            isHero
+              ? "border-0 bg-transparent py-3 pl-10 shadow-none focus:border-transparent focus:shadow-none"
+              : ""
+          }
         />
         {open && suggestions.length > 0 && (
           <ul className="absolute left-0 right-0 top-[calc(100%+4px)] z-20 max-h-64 overflow-auto rounded-xl border border-[#d8e0ea] bg-white py-1.5 shadow-soft">
@@ -71,9 +95,26 @@ export function AreaSearch({ initialArea = "", buttonLabel = "Search agents" }: 
           </ul>
         )}
       </div>
-      <Button type="submit" className="shrink-0 sm:self-stretch">
+      <Button
+        type="submit"
+        className={isHero ? "shrink-0 sm:self-auto" : "shrink-0 sm:self-stretch"}
+      >
         {buttonLabel}
       </Button>
     </form>
+  );
+}
+
+function PinIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="10" r="2.5" fill="currentColor" />
+    </svg>
   );
 }
